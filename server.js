@@ -71,12 +71,39 @@ if (process.env.NODE_ENV === 'development') {
 }
 
 //Controllers
+var indexPage = function(req, res) {
+	//first argument is the name of your EJS template without the .ejs extension, and the second argument is an object containing your template variables
+	res.render('index', {
+		title: 'Das Auto',
+        message: 'Sample Message'
+  	})
+}
+
 var create = function(req, res) {
-    User.create({ username: 'ryansalvador', password: 'pass123', admin: true }).then(function(user) {
+
+    var username = req.body.username;
+    var password = req.body.password;
+    
+    User.create({ username: username, password: password, admin: true }).then(function(user) {
       console.log('Im BATMAN!!!');
       res.json({ success: true });
     }).catch(function (err) {
       return res.send('Something went wrong! - /create', { 
+            errors: err,
+            status: 500
+        });
+    });
+};
+
+var findAllEjs = function(req, res) {
+    User.findAll().then(function(users){
+      console.log('Im BATMAN!!!');
+	    res.render('view', {
+		    title: 'Das Auto',
+            users: users
+  	    })
+    }).catch(function (err) {
+      return res.send('Something went wrong! - /read', { 
             errors: err,
             status: 500
         });
@@ -135,16 +162,17 @@ app.route('/api/users')
     .post(create);
 app.route('/api/users/:userId')
     .get(show)
-//    .put(users.requiresLogin, articles.hasAuthorization, articles.update)
-    .delete(destroy);
+    .put(update) // not yet working
+    .delete(destroy); // not yet working
 
 // Finish with setting up the userId param
 // Note: the articles.article function will be called everytime then it will call the next function.
 app.param('userId', find);
 
-app.get('/', function(req, res) {
-    res.send('Hello! The API is at http://localhost:' + port + '/api');
-});
+app.get('/', indexPage);
+//app.get('/', function(req, res) {
+//    res.send('Hello! The API is at http://localhost:' + port + '/api');
+//});
 
 app.listen(port);
 console.log('Server running at http://localhost:' + port +'/');
