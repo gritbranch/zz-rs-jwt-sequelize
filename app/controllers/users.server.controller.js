@@ -14,7 +14,7 @@ exports.homepage = function(req, res) {
 }
 
 exports.create = function(req, res) {
-    
+        
     User.create({ username: req.body.username, password: req.body.password, admin: true }).then(function(user) {
       res.json({ success: true });
     }).catch(function (err) {
@@ -106,7 +106,7 @@ exports.createJwt = function (req, res) {
                 res.json({ success: false, message: 'Authentication failed. Wrong password.' });
             } else {
                 // if user is found and password is right
-                var token = jwt.sign(user.dataValues, app.get('superSecret'), {
+                var token = jwt.sign(user.dataValues, config.jwtSecretKey, {
                     expiresIn : 60*24 // expires in 24 hours
                 });
 
@@ -128,12 +128,12 @@ exports.createJwt = function (req, res) {
 exports.authenticateJwt = function (req, res, next) {
     
     // check header or url parameters or post parameters for token
-    var token = req.body.token || req.query.token || req.headers['x-access-token'];
+    var token = req.headers.authorization || req.body.token || req.query.token || req.headers['x-access-token'];
 
     // decode token
     if (token) {
         // verifies secret and checks exp
-        jwt.verify(token, app.get('superSecret'), function(err, decoded) {      
+        jwt.verify(token, config.jwtSecretKey, function(err, decoded) {      
         if (err) {
             return res.json({ success: false, message: 'Failed to authenticate token.' });    
         } else {
@@ -150,5 +150,7 @@ exports.authenticateJwt = function (req, res, next) {
             message: 'No token provided.' 
         });
     }
+
+
 
 };

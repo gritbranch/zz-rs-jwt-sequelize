@@ -1,5 +1,6 @@
 module.exports = {
-    sessionSecret: 'developmentSessionSecret',
+    jwtSecret: 'jwtSecret',
+    jwtSecretKey: 'shhhhhh',
     db: {
         name: "rs-jwt-sequelize-dev",
         username: "root",
