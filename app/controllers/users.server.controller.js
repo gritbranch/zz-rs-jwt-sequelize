@@ -14,8 +14,15 @@ exports.homepage = function(req, res) {
 }
 
 exports.create = function(req, res) {
-        
-    User.create({ username: req.body.username, password: req.body.password, admin: true }).then(function(user) {
+
+    var user = User.build(req.body);
+
+    user.salt = user.makeSalt();
+    user.hashedPassword = user.encryptPassword(req.body.password, user.salt);
+    console.log('New User : { username: ' + user.username + ' }');
+
+    //User.create({ username: req.body.username, password: req.body.password, admin: true }).then(function(user) {
+    User.create({ username: user.username, password: user.hashedPassword, salt: user.salt, admin: true }).then(function(user) {    
       res.json({ success: true });
     }).catch(function (err) {
       return res.send('Something went wrong during create.', { 
@@ -95,14 +102,15 @@ exports.destroy = function(req, res) {
 };
 
 exports.createJwt = function (req, res) {
-    
+
     //find user
     User.find({where: {username: req.body.username}}).then(function(user){
         if(!user) {
             res.json({ success: false, message: 'Authentication failed. User not found.' });
         } else if (user) {
             // check if password matches
-            if (user.password != req.body.password) {
+            //if (user.password != req.body.password) {
+            if (!user.authenticate(req.body.password)) {
                 res.json({ success: false, message: 'Authentication failed. Wrong password.' });
             } else {
                 // if user is found and password is right
